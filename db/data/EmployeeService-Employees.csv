@@ -1,0 +1,3 @@
+ID,firstName,lastName,dateOfBirth,gender,email,hireDate,salary,role_ID,department_ID,performanceRating,createdAt,createdBy,modifiedAt,modifiedBy
+e1a9d9a0-8dfb-49a9-a321-111122223333,John,Doe,1990-05-12,Male,john.doe@example.com,2020-03-01,5000.00,r1f9b3c2-aaaa-bbbb-cccc-000011112222,d1f9b3c2-1a5f-4d2a-b75a-001122334455,4,2024-06-01T10:30:00Z,admin,2024-06-01T10:30:00Z,admin
+e2a9d9a0-8dfb-49a9-a321-111122223334,Jane,Smith,1992-08-20,Female,jane.smith@example.com,2021-07-15,5200.00,r2f9b3c2-bbbb-cccc-dddd-000011112233,d2f9b3c2-1a5f-4d2a-b75a-001122334456,5,2024-06-01T10:35:00Z,admin,2024-06-01T10:35:00Z,admin
