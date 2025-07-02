@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/mvc/Controller"],function(e){"use strict";return e.extend("ojt.employ.controller.BaseController",{onNavToList:function(){this.getOwnerComponent().getRouter().navTo("list")},onNavToAddEmployee:function(){this.getOwnerComponent().getRouter().navTo("addEmployee")},getRouter:function(){return this.getOwnerComponent().getRouter()},getModel:function(e){return this.getView().getModel(e)},setModel:function(e,t){return this.getView().setModel(e,t)}})});
+//# sourceMappingURL=BaseController.js.map

@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/UIComponent","sap/ui/Device","sap/ui/model/json/JSONModel","sap/m/MessageToast","sap/ui/core/BusyIndicator","ojt/employ/model/models"],function(e,t,i,n,o,s){"use strict";return e.extend("ojt.employ.Component",{metadata:{manifest:"json",interfaces:["sap.ui.core.IAsyncContentCreation"]},init:async function(){e.prototype.init.apply(this,arguments);this.getRouter().initialize();var n=new i(t);n.setDefaultBindingMode("OneWay");this.setModel(n,"device");const o=await s.getCurrentUser();this.setModel(o,"user")}})});
+//# sourceMappingURL=Component.js.map

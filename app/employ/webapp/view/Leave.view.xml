@@ -1,0 +1,136 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    controllerName="ojt.employ.controller.Leave"
+    displayBlock="true"
+>
+    <ScrollContainer
+        id="leaveScrollContainer"
+        vertical="true"
+        height="100%"
+    >
+        <core:Fragment
+            fragmentName="ojt.employ.fragments.Header"
+            type="XML"
+        />
+        <VBox class="sapUiSmallMargin">
+            <Panel
+                headerText="{i18n>leaveTitle}"
+                class="sapUiResponsiveMargin"
+                width="auto"
+            >
+                <content>
+                    <core:Fragment
+                        fragmentName="ojt.employ.fragments.LeaveRequestForm"
+                        type="XML"
+                    />
+                    <Button
+                        id="addLeaveButton"
+                        text="{i18n>addLeaveRequest}"
+                        press="onAddLeaveRequest"
+                        visible="{user>/isAdmin}"
+                        class="sapUiMediumMarginBottom"
+                    />
+                    <Table
+                        id="leaveTable"
+                        items="{
+                            path: '/LeaveRequests',
+                            parameters: {
+                                $expand: 'employee'
+                            }
+                        }"
+                        growing="true"
+                        growingThreshold="10"
+                    >
+                        <headerToolbar>
+                            <Toolbar id="leaveTableToolbar">
+                                <Title
+                                    id="leaveTableTitle"
+                                    text="{i18n>leaveRequests}"
+                                />
+                            </Toolbar>
+                        </headerToolbar>
+                        <columns>
+                            <Column id="startDateColumn">
+                                <Text
+                                    id="startDateText"
+                                    text="{i18n>startDate}"
+                                />
+                            </Column>
+                            <Column id="endDateColumn">
+                                <Text
+                                    id="endDateText"
+                                    text="{i18n>endDate}"
+                                />
+                            </Column>
+                            <Column id="statusColumn">
+                                <Text
+                                    id="statusText"
+                                    text="{i18n>status}"
+                                />
+                            </Column>
+                            <Column id="reasonColumn">
+                                <Text
+                                    id="reasonText"
+                                    text="{i18n>reason}"
+                                />
+                            </Column>
+                            <Column
+                                id="actionsColumn"
+                                width="15%"
+                                visible="{user>/isAdmin}"
+                            >
+                                <Text
+                                    id="actionsText"
+                                    text="{i18n>actions}"
+                                />
+                            </Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem id="leaveItem">
+                                <cells>
+                                    <Text
+                                        id="startDate"
+                                        text="{path: 'startDate'}"
+                                    />
+                                    <Text
+                                        id="endDate"
+                                        text="{path: 'endDate'}"
+                                    />
+                                    <Text
+                                        id="status"
+                                        text="{status}"
+                                    />
+                                    <Text
+                                        id="reason"
+                                        text="{reason}"
+                                    />
+                                    <HBox
+                                        id="actionButtons"
+                                        visible="{user>/isAdmin}"
+                                    >
+                                        <Button
+                                            id="approveButton"
+                                            icon="sap-icon://accept"
+                                            tooltip="{i18n>approve}"
+                                            press="onApproveRequest"
+                                            enabled="{= ${status} === 'Pending'}"
+                                        />
+                                        <Button
+                                            id="rejectButton"
+                                            icon="sap-icon://decline"
+                                            tooltip="{i18n>reject}"
+                                            press="onRejectRequest"
+                                            enabled="{= ${status} === 'Pending'}"
+                                        />
+                                    </HBox>
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </content>
+            </Panel>
+        </VBox>
+    </ScrollContainer>
+</mvc:View>

@@ -3,6 +3,10 @@
     "[production]": {
       "auth": "xsuaa"
     },
-    "db": "hana"
+    "db": "hana",
+    "[hybrid]": {
+      "auth": "xsuaa",
+      "db": "hana"
+    }
   }
 }

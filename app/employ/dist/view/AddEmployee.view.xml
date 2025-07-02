@@ -1,0 +1,46 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    controllerName="ojt.employ.controller.AddEmployee"
+    displayBlock="true"
+>
+    <ScrollContainer
+        id="addEmployeeScrollContainer"
+        vertical="true"
+        height="100%"
+    >
+        <core:Fragment
+            fragmentName="ojt.employ.fragments.Header"
+            type="XML"
+        />
+        <VBox class="sapUiSmallMargin">
+            <Panel
+                headerText="{i18n>addEmployeeTitle}"
+                class="sapUiResponsiveMargin"
+                width="auto"
+            >
+                <content>
+                    <core:Fragment
+                        fragmentName="ojt.employ.fragments.AddEmployeeForm"
+                        type="XML"
+                    />
+                    <HBox class="sapUiMediumMarginTop">
+                        <Button
+                            id="submitButton"
+                            text="{i18n>submit}"
+                            type="Accept"
+                            press="onSubmitNewEmployee"
+                            class="sapUiSmallMarginEnd"
+                        />
+                        <Button
+                            id="cancelButton"
+                            text="{i18n>cancel}"
+                            press="onCancel"
+                        />
+                    </HBox>
+                </content>
+            </Panel>
+        </VBox>
+    </ScrollContainer>
+</mvc:View>
