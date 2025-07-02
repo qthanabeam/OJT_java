@@ -15,12 +15,16 @@
     {
       "name": "Admin",
       "description": "Admin role for full access",
-      "scope-references": ["$XSAPPNAME.Admin"]
+      "scope-references": [
+        "$XSAPPNAME.Admin"
+      ]
     },
     {
       "name": "Viewer",
       "description": "Viewer role for read-only access",
-      "scope-references": ["$XSAPPNAME.Viewer"]
+      "scope-references": [
+        "$XSAPPNAME.Viewer"
+      ]
     }
   ],
   "oauth2-configuration": {

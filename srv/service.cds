@@ -1,7 +1,6 @@
 using {JAVAX} from '../db/data-model';
 
-@path    : 'employee'
-@requires: 'authenticated-user'
+@path: 'employee'
 service EmployeeService {
   entity Roles         as projection on JAVAX.Roles;
   entity Departments   as projection on JAVAX.Departments;

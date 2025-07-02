@@ -61,6 +61,12 @@ modules:
           app-protocol: ${protocol}
           app-uri: ${default-uri}
           url: ${default-url}
+  - name: JAVAX-srv
+    type: java
+    path: srv
+    requires:
+      - name: JAVAX-db
+      - name: JAVAX-auth
 
 resources:
   - name: JAVAX-auth
