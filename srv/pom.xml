@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -43,11 +44,7 @@
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.sap.cds</groupId>
-            <artifactId>cds-feature-hana</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+
         <dependency>
             <groupId>com.sap.cds</groupId>
             <artifactId>cds-starter-cloudfoundry</artifactId>
@@ -58,7 +55,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.sap.cds</groupId>
+            <artifactId>cds-feature-hana</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sap.cloud.security.xsuaa</groupId>
+            <artifactId>spring-xsuaa</artifactId>
+            <version>3.6.0</version>
+        </dependency>
     </dependencies>
+
 
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -145,6 +155,7 @@
                 </executions>
             </plugin>
         </plugins>
+
     </build>
 
 </project>

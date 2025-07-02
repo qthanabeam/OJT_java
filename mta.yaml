@@ -14,7 +14,7 @@ modules:
     properties:
       SPRING_PROFILES_ACTIVE: cloud,sandbox
       JBP_CONFIG_COMPONENTS: "jres: ['com.sap.xs.java.buildpack.jre.SAPMachineJRE']"
-      JBP_CONFIG_SAP_MACHINE_JRE: '{ version: 21.+ }'
+      JBP_CONFIG_SAP_MACHINE_JRE: "{ version: 21.+ }"
     build-parameters:
       builder: custom
       commands:
@@ -80,7 +80,7 @@ resources:
         tenant-mode: dedicated
         oauth2-configuration:
           redirect-uris:
-            - https://~{app-api/app-uri}/**
+            - https://*.applicationstudio.cloud.sap/**
     requires:
       - name: app-api
   - name: JAVAX-db
