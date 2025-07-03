@@ -8,10 +8,11 @@ service EmployeeService {
   entity LeaveRequests as projection on JAVAX.LeaveRequests;
   action   calculateSalary(employeeID : UUID)                 returns Decimal(10, 2);
   action   updateLeaveStatus(leaveID : UUID, status : String) returns String;
+  function userInfo()                                         returns user;
 
-  function userInfo()                                         returns {
+  type user {
     id    : String;
-    roles : many String;
-  };
+    roles : array of String;
+  }
 
 }

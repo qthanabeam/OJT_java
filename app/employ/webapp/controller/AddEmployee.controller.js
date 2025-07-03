@@ -1,6 +1,6 @@
 sap.ui.define(
   [
-    "ojt/employ/controller/BaseController", 
+    "ojt/employ/controller/BaseController",
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
     "sap/ui/model/json/JSONModel",

@@ -41,9 +41,12 @@ sap.ui.define(
         console.log("Fetched user info:", oResult);
 
         // Prepare user data
-        const roles = oResult?.roles || {};
-        const isAdmin = roles.hasOwnProperty("Admin");
+        const roles = oResult?.roles || []; // roles là array, không phải object
+        const isAdmin = Array.isArray(roles) && roles.includes("Admin");
         const id = oResult?.id || "";
+
+        console.log("Roles array:", roles);
+        console.log("Is Admin:", isAdmin);
 
         // Build JSON model and set properties explicitly
         const oUserModel = new JSONModel();

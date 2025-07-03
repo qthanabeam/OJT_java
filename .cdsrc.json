@@ -1,12 +1,13 @@
 {
+  "sql": {
+    "native_hana_associations": false
+  },
   "requires": {
-    "[production]": {
-      "auth": "xsuaa"
-    },
     "db": "hana",
     "[hybrid]": {
-      "auth": "xsuaa",
-      "db": "hana"
-    }
+      "db": "hana",
+      "auth": "xsuaa"
+    },
+    "auth": "xsuaa"
   }
 }

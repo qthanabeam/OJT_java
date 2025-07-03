@@ -5,7 +5,7 @@
     {
       "source": "^/odata/(.*)$",
       "target": "/odata/$1",
-      "destination": "ojt_employ-srv-api",
+      "destination": "JAVAX-srv-api",
       "authenticationType": "xsuaa",
       "csrfProtection": false
     },

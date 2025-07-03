@@ -1,340 +1,171 @@
-// package customer.javax.handlers;
+package customer.javax.handlers;
 
-// import java.math.BigDecimal;
-// import java.math.RoundingMode;
-// import java.time.LocalDate;
-// import java.time.temporal.ChronoUnit;
-// import java.util.Collection;
-// import java.util.HashMap;
-// import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import org.slf4j.Logger;
 
-// import org.slf4j.Logger;
-// import org.slf4j.LoggerFactory;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.stereotype.Component;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import com.sap.cds.services.EventContext;
+import com.sap.cds.services.cds.CqnService;
+import com.sap.cds.services.handler.EventHandler;
+import com.sap.cds.services.handler.annotations.Before;
+import com.sap.cds.services.handler.annotations.On;
+import com.sap.cds.services.handler.annotations.ServiceName;
+import com.sap.cds.services.persistence.PersistenceService;
+import com.sap.cds.services.request.UserInfo;
+import com.sap.cds.Result;
+import com.sap.cds.Row;
+import com.sap.cds.ql.Update;
+import com.sap.cds.ql.Select;
+import com.sap.cds.ql.cqn.CqnSelect;
+import com.sap.cds.ql.cqn.CqnUpdate;
 
-// import com.sap.cds.services.EventContext;
-// import com.sap.cds.services.cds.CqnService;
-// import com.sap.cds.services.handler.EventHandler;
-// import com.sap.cds.services.handler.annotations.Before;
-// import com.sap.cds.services.handler.annotations.On;
-// import com.sap.cds.services.handler.annotations.ServiceName;
-// import com.sap.cds.services.request.UserInfo;
-// import com.sap.cds.services.cds.CdsCreateEventContext;
-// import com.sap.cds.services.cds.CdsUpdateEventContext;
-// import com.sap.cds.services.cds.CdsUpsertEventContext;
-// import com.sap.cds.services.persistence.PersistenceService;
-// import com.sap.cds.services.ErrorStatuses;
-// import com.sap.cds.services.ServiceException;
-// import com.sap.cds.ql.Select;
-// import com.sap.cds.ql.Update;
-// import com.sap.cds.ql.cqn.CqnValue;
+import cds.gen.employeeservice.*;;
 
-// import cds.gen.employeeservice.EmployeeService_;
-// import cds.gen.employeeservice.Employees_;
-// import cds.gen.employeeservice.Roles_;
-// import cds.gen.employeeservice.LeaveRequests_;
-// import cds.gen.employeeservice.CalculateSalaryContext;
-// import cds.gen.employeeservice.UpdateLeaveStatusContext;
-// import cds.gen.employeeservice.UserInfoContext;
+@Component
+@ServiceName(EmployeeService_.CDS_NAME)
+public class EmployeeServiceHandler implements EventHandler {
+    @Autowired
+    UserInfo userInfo;
+    @Autowired
+    PersistenceService persistenceService;
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceHandler.class);
 
-// @Component
-// @ServiceName(EmployeeService_.CDS_NAME)
-// public class EmployeeServiceHandler implements EventHandler {
+    // Calculate years of service
+    private long getYearsOfService(LocalDate hireDate) {
+        return ChronoUnit.YEARS.between(hireDate, LocalDate.now());
+    }
 
-// @Autowired
-// private UserInfo userInfo;
+    // Handle updateLeaveStatus action/function
+    @On(event = UpdateLeaveStatusContext.CDS_NAME)
+    public void updateLeaveStatus(UpdateLeaveStatusContext context) {
+        String leaveID = context.getLeaveID();
+        String status = context.getStatus();
+        String[] validStatuses = { "Pending", "Approved", "Rejected" };
+        if (!Arrays.asList(validStatuses).contains(status)) {
+            context.getMessages().error("Invalid status value");
+            context.setCompleted();
+            return;
+        }
+        CqnUpdate updateQuery = Update.entity(LeaveRequests_.CDS_NAME)
+                .data(Map.of("status", status))
+                .where(leaveRequest -> leaveRequest.get(LeaveRequests.ID).eq(leaveID));
+        long updated = persistenceService.run(updateQuery).rowCount();
+        if (updated == 0) {
+            context.getMessages().error("Leave request not found");
+            context.setCompleted();
+            return;
+        }
+        // For action context, use setResult
+        context.setResult("Status updated successfully");
+    }
 
-// @Autowired
-// private PersistenceService persistenceService;
+    @On(event = UserInfoContext.CDS_NAME)
+    public void userInfo(UserInfoContext context) {
+        User result = User.create();
+        if (!userInfo.isAuthenticated()) {
+            result.put("id", "anonymous");
+            result.put("roles", new ArrayList<String>());
+        } else {
+            String userId = userInfo.getName();
+            Collection<String> roles = userInfo.getRoles();
 
-// private static final int SERVICE_BONUS_PER_YEAR = 1000;
-// private static final int PERFORMANCE_BONUS_MULTIPLIER = 500;
-// private static final Logger logger =
-// LoggerFactory.getLogger(EmployeeServiceHandler.class);
+            List<String> filteredRoles = new ArrayList<String>();
+            if (roles != null) {
+                for (String role : roles) {
+                    if (!"openid".equals(role)) {
+                        filteredRoles.add(role);
+                    }
+                }
+            }
 
-// @Before(event = { CqnService.EVENT_CREATE, CqnService.EVENT_UPSERT,
-// CqnService.EVENT_UPDATE }, entity = Employees_.CDS_NAME)
-// public void autoCalculateSalary(EventContext ctx) {
-// logger.info("Auto calculating salary for employee operations");
-// if (ctx instanceof CdsCreateEventContext) {
-// ((CdsCreateEventContext)
-// ctx).getCqn().entries().forEach(this::calculateEmployeeSalary);
-// } else if (ctx instanceof CdsUpdateEventContext) {
-// ((CdsUpdateEventContext)
-// ctx).getCqn().entries().forEach(this::calculateEmployeeSalary);
-// } else if (ctx instanceof CdsUpsertEventContext) {
-// ((CdsUpsertEventContext)
-// ctx).getCqn().entries().forEach(this::calculateEmployeeSalary);
-// }
-// }
+            System.out.println("Filtered roles: " + filteredRoles);
 
-// @On(event = CalculateSalaryContext.CDS_NAME)
-// public void calculateSalary(CalculateSalaryContext context) {
-// String employeeID = context.getEmployeeID();
-// if (employeeID == null || employeeID.isEmpty()) {
-// throw new ServiceException(ErrorStatuses.BAD_REQUEST, "Employee ID is
-// required");
-// }
+            result.put("id", userId != null ? userId : "unknown");
+            result.put("roles", filteredRoles);
+        }
+        context.setResult(result);
+    }
 
-// try {
-// var employeeResult = persistenceService.run(
-// Select.from(Employees_.CDS_NAME)
-// .columns(e -> e._all(), e -> e.role()._all())
-// .where(e -> e.get("ID").eq(employeeID)));
+    // Handle calculateSalary as a custom function
+    @On(event = CalculateSalaryContext.CDS_NAME)
+    public void calculateSalary(CalculateSalaryContext context) {
 
-// if (!employeeResult.first().isPresent()) {
-// throw new ServiceException(ErrorStatuses.NOT_FOUND, "Employee not found");
-// }
+        final String employeeID = context.getEmployeeID();
 
-// var employee = employeeResult.first().get();
-// BigDecimal totalSalary = calculateTotalSalary(employee);
+        if (employeeID == null || employeeID.isEmpty()) {
+            context.getMessages().error("EmployeeID parameter is required");
+            context.setCompleted();
+            return;
+        }
 
-// persistenceService.run(
-// Update.entity(Employees_.CDS_NAME)
-// .set("salary", CqnValue.of(totalSalary))
-// .where(e -> e.get("ID").eq(employeeID)));
+        CqnSelect query = Select.from(Employees_.CDS_NAME)
+                .columns(emp -> emp._all())
+                .where(emp -> emp.get(Employees.ID).eq(employeeID));
 
-// context.setResult(totalSalary);
-// logger.info("Calculated salary for employee {}: {}", employeeID,
-// totalSalary);
+        Result result = persistenceService.run(query);
+        if (result.first().isEmpty()) {
+            context.getMessages().error("Employee not found");
+            context.setCompleted();
+            return;
+        }
 
-// } catch (ServiceException e) {
-// throw e;
-// } catch (Exception e) {
-// logger.error("Error calculating salary for employee: {}", employeeID, e);
-// throw new ServiceException(ErrorStatuses.SERVER_ERROR, "Error calculating
-// salary: " + e.getMessage());
-// }
-// }
+        Row employeeRow = result.first().get();
+        Map<String, Object> employeeData = new HashMap<>();
+        employeeRow.forEach((key, value) -> employeeData.put(key, value));
 
-// @On(event = UpdateLeaveStatusContext.CDS_NAME)
-// public void updateLeaveStatus(UpdateLeaveStatusContext context) {
-// String leaveID = context.getLeaveID();
-// String status = context.getStatus();
+        LocalDate hireDate = LocalDate.parse(employeeData.get(Employees.HIRE_DATE).toString());
+        long yearsOfService = getYearsOfService(hireDate);
 
-// if (leaveID == null || leaveID.isEmpty()) {
-// throw new ServiceException(ErrorStatuses.BAD_REQUEST, "Leave ID is
-// required");
-// }
+        BigDecimal baseSalary = new BigDecimal(employeeData.getOrDefault("role_baseSalary", "0").toString());
+        BigDecimal allowance = new BigDecimal(employeeData.getOrDefault("role_allowance", "0").toString());
+        BigDecimal serviceBonus = BigDecimal.valueOf(yearsOfService * 1000);
+        BigDecimal performanceBonus = BigDecimal.valueOf(
+                Double.parseDouble(employeeData.getOrDefault(Employees.PERFORMANCE_RATING, "1").toString()) * 500);
 
-// String[] validStatuses = { "Pending", "Approved", "Rejected" };
-// boolean isValidStatus = false;
-// for (String validStatus : validStatuses) {
-// if (validStatus.equals(status)) {
-// isValidStatus = true;
-// break;
-// }
-// }
+        BigDecimal totalSalary = baseSalary
+                .add(allowance)
+                .add(serviceBonus)
+                .add(performanceBonus)
+                .setScale(2, RoundingMode.HALF_UP);
 
-// if (!isValidStatus) {
-// throw new ServiceException(ErrorStatuses.BAD_REQUEST,
-// "Invalid status value. Must be: Pending, Approved, or Rejected");
-// }
+        CqnUpdate updateQuery = Update.entity(Employees_.CDS_NAME)
+                .data(Map.of(Employees.SALARY, totalSalary))
+                .where(empUpdate -> empUpdate.get(Employees.ID).eq(employeeID));
 
-// try {
-// var updateResult = persistenceService.run(
-// Update.entity(LeaveRequests_.CDS_NAME)
-// .set("status", CqnValue.of(status))
-// .where(lr -> lr.get("ID").eq(leaveID)));
+        persistenceService.run(updateQuery);
 
-// // Kiểm tra có update được không
-// var checkResult = persistenceService.run(
-// Select.from(LeaveRequests_.CDS_NAME)
-// .where(lr -> lr.get("ID").eq(leaveID)));
+        // Return the calculated salary
+        context.setResult(totalSalary);
+    }
 
-// if (!checkResult.first().isPresent()) {
-// throw new ServiceException(ErrorStatuses.NOT_FOUND, "Leave request not
-// found");
-// }
+    // Restrict access for CREATE, UPDATE, DELETE operations
+    @Before(event = { CqnService.EVENT_CREATE, CqnService.EVENT_UPDATE, CqnService.EVENT_DELETE }, entity = {
+            Employees_.CDS_NAME, LeaveRequests_.CDS_NAME })
+    public void restrictAccess(EventContext context) {
+        if (!userInfo.isAuthenticated() || !userInfo.getRoles().contains("Admin")) {
+            logger.info("Unauthorized access attempt by user: {}", userInfo.getName());
+            context.getMessages().error("Admin role required for this operation");
+            context.setCompleted();
+        }
+    }
 
-// context.setResult("Status updated successfully");
-// logger.info("Updated leave request {} status to: {}", leaveID, status);
-
-// } catch (ServiceException e) {
-// throw e;
-// } catch (Exception e) {
-// logger.error("Error updating leave status for ID: {}", leaveID, e);
-// throw new ServiceException(ErrorStatuses.SERVER_ERROR, "Error updating leave
-// status: " + e.getMessage());
-// }
-// }
-
-// @On(event = UserInfoContext.CDS_NAME)
-// public void getUserInfo(UserInfoContext context) {
-// try {
-// String userId = userInfo.getName();
-// Boolean authenticated = userInfo.isAuthenticated();
-// Collection<String> roles = userInfo.getRoles();
-
-// Map<String, Object> userInfoMap = new HashMap<>();
-// userInfoMap.put("id", userId != null ? userId : "unknown");
-// userInfoMap.put("authenticated", authenticated != null ? authenticated :
-// false);
-// userInfoMap.put("roles", roles);
-
-// context.setResult(userInfoMap);
-// logger.info("Retrieved user info for: {}", userId);
-
-// } catch (Exception e) {
-// logger.error("Error getting user info", e);
-// throw new ServiceException(ErrorStatuses.SERVER_ERROR, "Error retrieving user
-// information");
-// }
-// }
-
-// @Before(event = { CqnService.EVENT_CREATE, CqnService.EVENT_UPDATE,
-// CqnService.EVENT_DELETE }, entity = {
-// Employees_.CDS_NAME, LeaveRequests_.CDS_NAME })
-// public void checkAdminRole(EventContext ctx) {
-// if (!userInfo.hasRole("Admin")) {
-// logger.warn("Non-admin user {} attempted restricted operation",
-// userInfo.getName());
-// throw new ServiceException(ErrorStatuses.FORBIDDEN, "Admin role required for
-// this operation");
-// }
-// }
-
-// @Before(event = CqnService.EVENT_UPDATE, entity = LeaveRequests_.CDS_NAME)
-// public void checkLeaveUpdatePermission(EventContext ctx) {
-// if (!userInfo.hasRole("Admin")) {
-// logger.warn("Non-admin user {} attempted to update leave request",
-// userInfo.getName());
-// throw new ServiceException(ErrorStatuses.FORBIDDEN, "Only Admins can
-// approve/reject leave requests");
-// }
-// }
-
-// private void calculateEmployeeSalary(Map<String, Object> entry) {
-// Object hireDateObj = entry.get("hireDate");
-// Object roleIdObj = entry.get("role_ID");
-// Object performanceRatingObj = entry.get("performanceRating");
-
-// if (hireDateObj != null && roleIdObj != null) {
-// try {
-// LocalDate hireDate = LocalDate.parse(hireDateObj.toString());
-// String roleId = roleIdObj.toString();
-// BigDecimal totalSalary = calculateSalaryForEmployee(hireDate, roleId,
-// performanceRatingObj);
-// if (totalSalary != null) {
-// entry.put("salary", totalSalary);
-// logger.info("Auto-calculated salary for employee entry: {}", totalSalary);
-// }
-// } catch (Exception e) {
-// logger.error("Error calculating salary for employee entry", e);
-// }
-// }
-// }
-
-// private BigDecimal calculateTotalSalary(Map<String, Object> employee) {
-// Object hireDateObj = employee.get("hireDate");
-// Object performanceRatingObj = employee.get("performanceRating");
-// @SuppressWarnings("unchecked")
-// Map<String, Object> role = (Map<String, Object>) employee.get("role");
-
-// if (hireDateObj == null || role == null) {
-// logger.warn("Missing required data for salary calculation");
-// return BigDecimal.ZERO;
-// }
-
-// try {
-// LocalDate hireDate = LocalDate.parse(hireDateObj.toString());
-// BigDecimal baseSalary = getBigDecimalValue(role.get("baseSalary"),
-// BigDecimal.ZERO);
-// BigDecimal allowance = getBigDecimalValue(role.get("allowance"),
-// BigDecimal.ZERO);
-// long yearsOfService = ChronoUnit.YEARS.between(hireDate, LocalDate.now());
-// BigDecimal serviceBonus = BigDecimal.valueOf(yearsOfService *
-// SERVICE_BONUS_PER_YEAR);
-// BigDecimal performanceRating = getBigDecimalValue(performanceRatingObj,
-// BigDecimal.ONE);
-// BigDecimal performanceBonus =
-// performanceRating.multiply(BigDecimal.valueOf(PERFORMANCE_BONUS_MULTIPLIER));
-
-// BigDecimal totalSalary =
-// baseSalary.add(allowance).add(serviceBonus).add(performanceBonus);
-// return totalSalary.setScale(2, RoundingMode.HALF_UP);
-
-// } catch (Exception e) {
-// logger.error("Error in salary calculation", e);
-// return BigDecimal.ZERO;
-// }
-// }
-
-// private BigDecimal calculateSalaryForEmployee(LocalDate hireDate, String
-// roleId, Object performanceRatingObj) {
-// BigDecimal baseSalary = getBaseSalaryFromRole(roleId);
-// BigDecimal allowance = getAllowanceFromRole(roleId);
-
-// if (baseSalary == null) {
-// logger.warn("Could not find base salary for role ID: {}", roleId);
-// return null;
-// }
-
-// long yearsOfService = ChronoUnit.YEARS.between(hireDate, LocalDate.now());
-// BigDecimal serviceBonus = BigDecimal.valueOf(yearsOfService *
-// SERVICE_BONUS_PER_YEAR);
-// BigDecimal performanceRating = getBigDecimalValue(performanceRatingObj,
-// BigDecimal.ONE);
-// BigDecimal performanceBonus =
-// performanceRating.multiply(BigDecimal.valueOf(PERFORMANCE_BONUS_MULTIPLIER));
-
-// BigDecimal totalSalary = baseSalary
-// .add(allowance != null ? allowance : BigDecimal.ZERO)
-// .add(serviceBonus)
-// .add(performanceBonus);
-
-// return totalSalary.setScale(2, RoundingMode.HALF_UP);
-// }
-
-// private BigDecimal getBaseSalaryFromRole(String roleId) {
-// try {
-// var result = persistenceService.run(
-// Select.from(Roles_.CDS_NAME)
-// .columns("baseSalary")
-// .where(r -> r.get("ID").eq(roleId)));
-
-// if (result.first().isPresent()) {
-// var row = result.first().get();
-// return getBigDecimalValue(row.get("baseSalary"), null);
-// }
-// } catch (Exception e) {
-// logger.error("Error fetching base salary for role ID: {}", roleId, e);
-// }
-// return null;
-// }
-
-// private BigDecimal getAllowanceFromRole(String roleId) {
-// try {
-// var result = persistenceService.run(
-// Select.from(Roles_.CDS_NAME)
-// .columns("allowance")
-// .where(r -> r.get("ID").eq(roleId)));
-
-// if (result.first().isPresent()) {
-// var row = result.first().get();
-// return getBigDecimalValue(row.get("allowance"), BigDecimal.ZERO);
-// }
-// } catch (Exception e) {
-// logger.error("Error fetching allowance for role ID: {}", roleId, e);
-// }
-// return BigDecimal.ZERO;
-// }
-
-// private BigDecimal getBigDecimalValue(Object value, BigDecimal defaultValue)
-// {
-// if (value == null)
-// return defaultValue;
-// try {
-// if (value instanceof BigDecimal)
-// return (BigDecimal) value;
-// else if (value instanceof Number)
-// return BigDecimal.valueOf(((Number) value).doubleValue());
-// else
-// return new BigDecimal(value.toString());
-// } catch (Exception e) {
-// logger.warn("Could not convert value to BigDecimal: {}", value, e);
-// return defaultValue;
-// }
-// }
-// }
+    // Restrict LeaveRequests updates to Admins
+    @Before(event = CqnService.EVENT_UPDATE, entity = LeaveRequests_.CDS_NAME)
+    public void restrictLeaveRequestUpdate(EventContext context) {
+        if (!userInfo.isAuthenticated() || !userInfo.getRoles().contains("Admin")) {
+            context.getMessages().error("Only Admins can approve/reject leave requests");
+            context.setCompleted();
+        }
+    }
+}

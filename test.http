@@ -6,7 +6,7 @@ Authorization: Basic system:
 ###
 
 ### Get one employee by ID
-GET http://localhost:4004/odata/v4/employee/userInfo
+GET http://localhost:5000/odata/v4/employee/userInfo
 Accept: application/json
 
 ###
