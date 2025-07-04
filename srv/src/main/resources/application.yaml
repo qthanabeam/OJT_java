@@ -10,11 +10,11 @@ cds:
       users:
         - name: viewer
           roles:
-            - viewer
+            - Viewer
 
         - name: admin
           roles:
-            - admin
+            - Admin
 
 ---
 spring:

@@ -71,7 +71,9 @@ sap.ui.define(
                 role_ID: oNewEmployee.role_ID,
                 department_ID: oNewEmployee.department_ID,
                 performanceRating: parseInt(oNewEmployee.performanceRating, 10),
-                salary: 0,
+                salary: oNewEmployee.salary
+                  ? parseFloat(oNewEmployee.salary).toFixed(2)
+                  : "0.00",
               });
 
               oNewContext

@@ -4,7 +4,6 @@ using {
       managed,
       cuid
 } from '@sap/cds/common';
-
 @readonly
 entity Roles : managed {
       key ID         : UUID;

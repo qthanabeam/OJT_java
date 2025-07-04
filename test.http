@@ -32,6 +32,7 @@ Accept: application/json
 ### Create a new employee
 POST http://localhost:8080/odata/v4/employee/Employees
 Content-Type: application/json
+Authorization: Basic admin:
 
 {
   "firstName": "Alice",
@@ -41,12 +42,24 @@ Content-Type: application/json
   "email": "alice.nguyen@example.com",
   "hireDate": "2024-06-20",
   "salary": 4800.00,
-  "role_ID": "r1f9b3c2-aaaa-bbbb-cccc-000011112222",
-  "department_ID": "d1f9b3c2-1a5f-4d2a-b75a-001122334455",
+  "role_ID": "392dfd92-5c3f-4a72-b4e1-5247baf71ff2",
+  "department_ID": "91eccdcb-fd79-4e63-a5c2-e7ae363b5dba",
   "performanceRating": 3
 }
+### Create a new employee
+GET http://localhost:8080/odata/v4/employee/Employees?$expand=role,department
+Content-Type: application/json
+Authorization: Basic admin:
+
 
 ###
+POST http://localhost:8080/odata/v4/employee/Departments
+Content-Type: application/json
+Authorization: Basic admin:
+
+{
+  "name": "RDC"
+}
 
 ### Submit a new leave request
 POST http://localhost:8080/odata/v4/employee/LeaveRequests

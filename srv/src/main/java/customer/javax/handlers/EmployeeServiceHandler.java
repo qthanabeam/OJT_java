@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import org.slf4j.Logger;
+import com.sap.cds.services.authentication.JwtTokenAuthenticationInfo;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,12 +67,16 @@ public class EmployeeServiceHandler implements EventHandler {
             context.setCompleted();
             return;
         }
-        // For action context, use setResult
+
         context.setResult("Status updated successfully");
     }
 
     @On(event = UserInfoContext.CDS_NAME)
     public void userInfo(UserInfoContext context) {
+        JwtTokenAuthenticationInfo authInfo = context.getAuthenticationInfo().as(JwtTokenAuthenticationInfo.class);
+        System.out.println("start");
+        System.out.print(authInfo.getToken());
+        System.out.println("end");
         User result = User.create();
         if (!userInfo.isAuthenticated()) {
             result.put("id", "anonymous");
