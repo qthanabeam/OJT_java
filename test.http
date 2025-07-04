@@ -1,0 +1,84 @@
+### Get all employees
+GET http://localhost:8080/odata/v4/employee/Employees
+Accept: application/json
+Authorization: Basic system:
+
+###
+
+### Get one employee by ID
+GET http://localhost:5000/odata/v4/employee/userInfo
+Accept: application/json
+
+###
+
+### Get all departments
+GET http://localhost:8080/odata/v4/employee/userInfo
+Accept: application/json
+
+###
+
+### Get all roles
+GET http://localhost:8080/odata/v4/employee/Roles
+Accept: application/json
+
+###
+
+### Get all leave requests
+GET http://localhost:8080/odata/v4/employee/LeaveRequests
+Accept: application/json
+
+###
+
+### Create a new employee
+POST http://localhost:8080/odata/v4/employee/Employees
+Content-Type: application/json
+Authorization: Basic admin:
+
+{
+  "firstName": "Alice",
+  "lastName": "Nguyen",
+  "dateOfBirth": "1995-01-20",
+  "gender": "Female",
+  "email": "alice.nguyen@example.com",
+  "hireDate": "2024-06-20",
+  "salary": 4800.00,
+  "role_ID": "392dfd92-5c3f-4a72-b4e1-5247baf71ff2",
+  "department_ID": "91eccdcb-fd79-4e63-a5c2-e7ae363b5dba",
+  "performanceRating": 3
+}
+### Create a new employee
+GET http://localhost:8080/odata/v4/employee/Employees?$expand=role,department
+Content-Type: application/json
+Authorization: Basic admin:
+
+
+###
+POST http://localhost:8080/odata/v4/employee/Departments
+Content-Type: application/json
+Authorization: Basic admin:
+
+{
+  "name": "RDC"
+}
+
+### Submit a new leave request
+POST http://localhost:8080/odata/v4/employee/LeaveRequests
+Content-Type: application/json
+
+{
+  "employee_ID": "e1a9d9a0-8dfb-49a9-a321-111122223333",
+  "startDate": "2024-07-10",
+  "endDate": "2024-07-12",
+  "status": "Pending",
+  "reason": "Vacation"
+}
+
+###
+
+### Trigger calculateSalary action
+POST http://localhost:8080/odata/v4/employee/calculateSalary
+Content-Type: application/json
+
+{
+  "employeeID": "e1a9d9a0-8dfb-49a9-a321-111122223333"
+}

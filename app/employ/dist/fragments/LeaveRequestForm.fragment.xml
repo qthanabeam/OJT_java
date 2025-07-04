@@ -1,0 +1,16 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form"
+>
+    <f:SimpleForm id="leaveForm" editable="true" layout="ColumnLayout" title="{i18n>newLeaveRequest}">
+        <f:content>
+            <Label id="startDateLabel" text="{i18n>startDate}"/>
+            <DatePicker id="startDatePicker" valueFormat="yyyy-MM-dd" value="{path: 'newLeave>/startDate'}"/>
+            <Label id="endDateLabel" text="{i18n>endDate}"/>
+            <DatePicker id="endDatePicker" valueFormat="yyyy-MM-dd" value="{path: 'newLeave>/endDate'}"/>
+            <Label id="reasonLabel" text="{i18n>reason}"/>
+            <Input id="reasonInput" value="{newLeave>/reason}"/>
+        </f:content>
+    </f:SimpleForm>
+</core:FragmentDefinition>
